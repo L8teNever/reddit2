@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
@@ -67,6 +67,15 @@
           {% block breadcrumb %}
           <h1 class="top-app-bar__title">Reddit Stories</h1>
           {% endblock %}
+          <div class="top-app-bar__actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+            <span id="job-status-text" style="font-size: 0.85rem; color: var(--on-surface-variant); display: none;"></span>
+            <button class="btn btn--secondary" id="btn-scrape" onclick="triggerJob('/api/trigger/scrape')" style="display:flex;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--surface-container-high);color:var(--on-surface);cursor:pointer;font-family:inherit;font-weight:500;">
+              <span class="material-symbols-rounded" style="font-size:18px;">download</span> Scrape
+            </button>
+            <button class="btn btn--primary" id="btn-process" onclick="triggerJob('/api/trigger/process')" style="display:flex;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--primary);color:var(--on-primary);cursor:pointer;font-family:inherit;font-weight:500;">
+              <span class="material-symbols-rounded" style="font-size:18px;">smart_toy</span> Process
+            </button>
+          </div>
         </div>
       </header>
       <div class="content-area">
@@ -75,5 +84,54 @@
     </main>
 
   </div>
+
+  <script>
+    function triggerJob(url) {
+      fetch(url, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) alert(data.error);
+          pollStatus();
+        })
+        .catch(err => alert("Error triggering job"));
+    }
+    
+    function pollStatus() {
+      fetch('/api/job/status')
+        .then(res => res.json())
+        .then(data => {
+          const text = document.getElementById('job-status-text');
+          const btnS = document.getElementById('btn-scrape');
+          const btnP = document.getElementById('btn-process');
+          
+          if (data.status === 'running') {
+            text.style.display = 'block';
+            text.textContent = data.message;
+            btnS.disabled = true;
+            btnS.style.opacity = '0.5';
+            btnP.disabled = true;
+            btnP.style.opacity = '0.5';
+            setTimeout(pollStatus, 2000);
+          } else {
+            btnS.disabled = false;
+            btnS.style.opacity = '1';
+            btnP.disabled = false;
+            btnP.style.opacity = '1';
+            
+            if (data.message && text.textContent !== data.message && data.message !== "") {
+               text.textContent = data.message;
+               text.style.display = 'block';
+               setTimeout(() => text.style.display = 'none', 8000);
+            } else if (!data.message || data.message === "") {
+               text.style.display = 'none';
+            }
+          }
+        })
+        .catch(err => console.error(err));
+    }
+    
+    // Initial poll
+    pollStatus();
+  </script>
 </body>
 </html>

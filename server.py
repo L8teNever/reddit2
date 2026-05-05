@@ -1,4 +1,4 @@
-﻿import json
+import json
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_file, url_for
@@ -125,6 +125,60 @@ def create_app(config: dict, db: Database) -> Flask:
     def api_ollama_status():
         running = check_ollama()
         return jsonify({"running": running, "models": list_models() if running else []})
+
+    import threading
+    from scraper import scrape_all
+    from processor import process_batch
+
+    job_state = {"status": "idle", "message": ""}
+
+    def run_scrape():
+        nonlocal job_state
+        job_state["status"] = "running"
+        job_state["message"] = "Scraping in progress..."
+        try:
+            scrape_all(config, db)
+            job_state["message"] = "Scraping finished successfully."
+        except Exception as e:
+            job_state["message"] = f"Error during scraping: {str(e)}"
+        finally:
+            job_state["status"] = "idle"
+
+    def run_process():
+        nonlocal job_state
+        job_state["status"] = "running"
+        job_state["message"] = "Processing in progress..."
+        try:
+            model = config["settings"].get("ollama_model", "llama3.2")
+            ensure_ollama(model)
+            stories = db.get_unprocessed_stories()
+            if not stories:
+                job_state["message"] = "No unprocessed stories found."
+            else:
+                done, failed = process_batch(stories, model, config["settings"]["stories_dir"], db)
+                job_state["message"] = f"Processing finished: {done} OK, {failed} Failed."
+        except Exception as e:
+            job_state["message"] = f"Error during processing: {str(e)}"
+        finally:
+            job_state["status"] = "idle"
+
+    @app.route("/api/trigger/scrape", methods=["POST"])
+    def trigger_scrape():
+        if job_state["status"] != "idle":
+            return jsonify({"error": "A job is already running", "state": job_state}), 400
+        threading.Thread(target=run_scrape, daemon=True).start()
+        return jsonify({"message": "Scraping started"})
+
+    @app.route("/api/trigger/process", methods=["POST"])
+    def trigger_process():
+        if job_state["status"] != "idle":
+            return jsonify({"error": "A job is already running", "state": job_state}), 400
+        threading.Thread(target=run_process, daemon=True).start()
+        return jsonify({"message": "Processing started"})
+
+    @app.route("/api/job/status")
+    def job_status():
+        return jsonify(job_state)
 
     @app.errorhandler(404)
     def not_found(e):
