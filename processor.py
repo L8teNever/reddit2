@@ -30,28 +30,28 @@ import requests
 OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11436")
 
 _SYSTEM = (
-    "You are a TikTok content creator specializing in viral Reddit stories. "
-    "Always respond with valid JSON only — no markdown, no explanation."
+    "You are a professional text sanitization assistant. Your sole purpose is to clean Reddit stories for Text-to-Speech "
+    "while preserving 100% of the original narrative. You NEVER summarize. You ALWAYS keep every detail. "
+    "Always respond with valid JSON only."
 )
 
 _PROMPT = """\
 Given this Reddit story, produce TikTok-ready content as JSON with exactly these keys:
 
-"tiktok_title"      : Catchy, hook-first title. Max 80 chars. Start with a question or shocking statement.
-"tiktok_description": Short teaser for the video description. Max 200 chars. No spoilers.
-"hashtags"          : Array of 8-12 hashtags. Always include "#storytime" and "#reddit". Add niche tags.
-"story"             : The EXACT ORIGINAL story text, ONLY cleaned up for Text-to-Speech:
-                        - CRITICAL: DO NOT SUMMARIZE. DO NOT SHORTEN. DO NOT REWRITE.
+"tiktok_title"      : Catchy, viral title. Max 80 chars.
+"tiktok_description": Short teaser. Max 200 chars.
+"hashtags"          : Array of 8-12 hashtags.
+"story"             : The cleaned story text.
+                        - CRITICAL: DO NOT SUMMARIZE. DO NOT SHORTEN. DO NOT SKIP SENTENCES.
                         - You MUST keep 100% of the original story length, details, and dialogue.
-                        - ONLY remove URLs, image embeds, and Reddit artifacts (like [View Poll], Edit:).
-                        - Remove excessive blank lines (max one blank line between paragraphs).
-                        - Fix obvious typos so the Text-to-Speech engine can read it perfectly.
-                        - The output word count MUST be nearly identical to the input word count.
+                        - You are only allowed to remove URLs, image links, and Reddit artifacts (like [View Poll], Edit:).
+                        - Do NOT rewrite the story. Keep the original style and flow word-for-word.
+                        - If the input has 500 words, the output MUST have approximately 500 words.
 
 Subreddit: r/{subreddit}
 Title: {title}
 
-Story:
+Original Story:
 {body}
 """
 
