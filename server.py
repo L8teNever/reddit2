@@ -19,6 +19,7 @@ def create_app(config: dict, db: Database) -> Flask:
             "total_stories": db.get_total_count(),
             "processed_stories": db.get_processed_count(),
             "video_stories": db.get_video_count(),
+            "background_count": len(list(Path("data/backgrounds").glob("*.mp4"))) if Path("data/backgrounds").exists() else 0,
         }
 
     # ── Index: alle Stories, filterbar + sortierbar ───────────────────────
@@ -237,6 +238,36 @@ def create_app(config: dict, db: Database) -> Flask:
     @app.route("/api/job/status")
     def job_status():
         return jsonify(job_state)
+
+    @app.route("/settings")
+    def settings():
+        bg_dir = Path("data/backgrounds")
+        bg_dir.mkdir(parents=True, exist_ok=True)
+        files = [f.name for f in bg_dir.glob("*") if f.suffix.lower() in (".mp4", ".mov", ".avi")]
+        return render_template("settings.html", background_files=files)
+
+    @app.route("/api/backgrounds/upload", methods=["POST"])
+    def upload_background():
+        if "file" not in request.files:
+            return redirect(url_for("settings"))
+        f = request.files["file"]
+        if f.filename == "":
+            return redirect(url_for("settings"))
+        
+        bg_dir = Path("data/backgrounds")
+        bg_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Sicherer Dateiname
+        filename = "".join(c for c in f.filename if c.isalnum() or c in "._-")
+        f.save(bg_dir / filename)
+        return redirect(url_for("settings"))
+
+    @app.route("/api/backgrounds/delete/<name>", methods=["POST"])
+    def delete_background(name):
+        bg_file = Path("data/backgrounds") / name
+        if bg_file.exists() and bg_file.is_file():
+            bg_file.unlink()
+        return redirect(url_for("settings"))
 
     @app.errorhandler(404)
     def not_found(e):

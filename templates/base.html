@@ -55,6 +55,15 @@
           </div>
           <span class="nav-rail__label">Video</span>
         </a>
+
+        <a href="/settings"
+           class="nav-rail__item {% if request.path == '/settings' %}nav-rail__item--active{% endif %}"
+           title="Einstellungen & Hintergründe">
+          <div class="nav-rail__indicator">
+            <span class="material-symbols-rounded">settings</span>
+          </div>
+          <span class="nav-rail__label">Optionen</span>
+        </a>
       </div>
 
       <div class="nav-rail__footer">
@@ -69,6 +78,10 @@
         <div class="nav-rail__stats">
           <span class="nav-rail__stat-num">{{ video_stories }}</span>
           <span class="nav-rail__stat-label">Video</span>
+        </div>
+        <div class="nav-rail__stats">
+          <span class="nav-rail__stat-num">{{ background_count }}</span>
+          <span class="nav-rail__stat-label">BGs</span>
         </div>
       </div>
     </nav>

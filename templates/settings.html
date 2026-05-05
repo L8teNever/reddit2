@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Einstellungen — Reddit Stories{% endblock %}
+
+{% block breadcrumb %}
+<h1 class="top-app-bar__title">Einstellungen</h1>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in" style="max-width: 800px; margin: 0 auto;">
+
+  <section class="story-container" style="margin-bottom: 24px;">
+    <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+      <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">movie</span>
+      Hintergrund-Videos
+    </h2>
+    <p class="page-subtitle">Diese Videos werden zufällig als Hintergrund für deine TikToks verwendet. Lade Clips im Hochformat (9:16) hoch.</p>
+
+    <div class="list-card" style="margin-top: 24px;">
+      {% if background_files %}
+        {% for file in background_files %}
+        <div class="list-item">
+          <span class="material-symbols-rounded" style="color: var(--md-sys-color-outline);">movie</span>
+          <div class="list-item__content">
+            <div class="list-item__headline" style="-webkit-line-clamp: 1;">{{ file }}</div>
+          </div>
+          <form action="/api/backgrounds/delete/{{ file }}" method="POST" onsubmit="return confirm('Datei wirklich löschen?')">
+            <button type="submit" class="btn btn--error" style="padding: 6px 12px; font-size: 12px;">
+              <span class="material-symbols-rounded" style="font-size: 18px;">delete</span> Löschen
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="padding: 32px;">
+          <span class="material-symbols-rounded" style="font-size: 3rem; opacity: 0.3;">video_library</span>
+          <p>Keine Hintergrundvideos vorhanden.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div style="margin-top: 24px; padding: 24px; background: var(--md-sys-color-surface-container-high); border-radius: 20px; border: 2px dashed var(--md-sys-color-outline-variant);">
+      <form action="/api/backgrounds/upload" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+        <div style="text-align: center;">
+          <span class="material-symbols-rounded" style="font-size: 3rem; color: var(--md-sys-color-primary); margin-bottom: 8px;">cloud_upload</span>
+          <p style="font-weight: 600;">Neues Video hochladen</p>
+          <p style="font-size: 0.8rem; opacity: 0.7;">Unterstützt .mp4, .mov, .avi</p>
+        </div>
+        <input type="file" name="file" accept="video/*" required style="font-size: 0.9rem; width: 100%; max-width: 300px;">
+        <button type="submit" class="btn btn--filled">
+          <span class="material-symbols-rounded">upload</span> Hochladen
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <section class="story-container">
+    <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+      <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">info</span>
+      System-Info
+    </h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+      <div class="tiktok-card" style="margin: 0;">
+        <div class="tiktok-card__label">Modell</div>
+        <div class="tiktok-card__value">Llama 3.2</div>
+      </div>
+      <div class="tiktok-card" style="margin: 0;">
+        <div class="tiktok-card__label">TTS Engine</div>
+        <div class="tiktok-card__value">Kokoro-82M</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
