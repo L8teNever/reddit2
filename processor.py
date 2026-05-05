@@ -1,4 +1,4 @@
-﻿"""
+"""
 Ollama Story Processor
 ----------------------
 Verarbeitet Reddit-Stories zu TikTok-Content via lokalem Ollama-Modell.
@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11436")
 
 _SYSTEM = (
     "You are a TikTok content creator specializing in viral Reddit stories. "
@@ -104,7 +104,7 @@ def ensure_ollama(preferred_model: str = "llama3.2") -> str:
     Returns the model name to use.
     Skips local install when OLLAMA_HOST points to a remote host (e.g. Docker).
     """
-    is_remote = OLLAMA_BASE not in ("http://localhost:11434", "http://127.0.0.1:11434")
+    is_remote = OLLAMA_BASE not in ("http://localhost:11436", "http://127.0.0.1:11436")
 
     if not is_remote:
         if not shutil.which("ollama"):

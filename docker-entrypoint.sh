@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-OLLAMA_HOST="${OLLAMA_HOST:-http://ollama:11434}"
+OLLAMA_HOST="${OLLAMA_HOST:-http://ollama:11436}"
 DEFAULT_MODEL="${OLLAMA_MODEL:-llama3.2}"
 
 echo "==> Warte auf Ollama ($OLLAMA_HOST)..."
