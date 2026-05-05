@@ -71,45 +71,33 @@ Reddit API  →  Scraper  →  SQLite DB  →  Webserver
 
 ---
 
-## Schnellstart — Lokal
+## 🖥️ Web-Dashboard & Automatisierung
 
-```bash
-# 1. Abhängigkeiten installieren
-pip install -r requirements.txt
+Das Projekt verfügt über ein modernes **Material Design 3 Dashboard**, über das der gesamte Workflow gesteuert werden kann:
 
-# 2. Reddit-API-Credentials eintragen (siehe Abschnitt Konfiguration)
-
-# 3. Stories scrapen
-python main.py scrape
-
-# 4. Mit Ollama verarbeiten
-#    Ollama + Modell llama3.2 werden beim ersten Aufruf automatisch installiert
-python main.py process
-
-# 5. Webserver starten
-python main.py serve
-# → http://127.0.0.1:5000
-```
+- **Scrape**: Startet den Reddit-Scraper im Hintergrund.
+- **Process**: Verarbeitet neue Stories mit Ollama (KI-Umschreibung). Inklusive **Fortschrittsbalken** und **Pause/Fortsetzen**-Funktion.
+- **Video Generieren**: Erstellt die finalen TikTok-Videos direkt aus der Story-Ansicht.
 
 ---
 
-## Schnellstart — Docker
+## 🚀 Schnellstart — Docker (Empfohlen)
 
 ```bash
-# 1. Hintergrundvideos für die Video-Engine ablegen (9:16-Format, .mp4)
-mkdir -p data/backgrounds
-# → eigene Clips in data/backgrounds/ kopieren
-
-# 2. Alles starten (baut Image, startet Ollama-Container + App)
-docker compose up --build
+# 1. Alles starten (baut Image, startet Ollama + App)
+docker compose up -d
 ```
 
-Beim ersten Start passiert automatisch:
-1. Ollama-Container startet (~30 s)
-2. App wartet auf Ollama (Health-Check)
-3. `llama3.2` wird heruntergeladen (~2 GB, einmalig)
-4. Webserver öffnet sich auf **http://localhost:5000**
+**Was passiert automatisch?**
+1. Der **Ollama-Service** wird initialisiert.
+2. Die App wartet, bis Ollama bereit ist.
+3. Das Modell `llama3.2` wird im Hintergrund geladen.
+4. Öffne **http://localhost:5000** im Browser.
 
+**Credentials:**
+Stelle sicher, dass deine Reddit-API-Daten in der `docker-compose.yml` unter `environment` eingetragen sind.
+
+---
 Daten bleiben dauerhaft erhalten:
 
 | Host-Pfad | Container-Pfad | Inhalt |

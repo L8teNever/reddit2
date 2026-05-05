@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Reddit Stories{% endblock %}
 
 {% block breadcrumb %}
@@ -51,14 +51,21 @@
 {% if stories %}
 <div class="story-grid">
   {% for s in stories %}
-  <a href="/story/{{ s.story_code }}" class="story-card">
+  <a href="/story/{{ s.story_code }}" class="story-card animate-fade-in" style="animation-delay: {{ loop.index0 * 0.05 }}s">
     <div class="story-card__top">
       <span class="story-card__code">{{ s.story_code }}</span>
-      {% if s.processed_at %}
-      <span class="story-card__tiktok-badge" title="TikTok-Version verfügbar">
-        <span class="material-symbols-rounded">smart_display</span>
-      </span>
-      {% endif %}
+      <div style="display: flex; gap: 4px;">
+        {% if s.video_generated_at %}
+        <span class="story-card__tiktok-badge" title="Video generiert" style="background: var(--md-sys-color-primary); color: #fff;">
+          <span class="material-symbols-rounded" style="font-size: 16px;">movie</span>
+        </span>
+        {% endif %}
+        {% if s.processed_at %}
+        <span class="story-card__tiktok-badge" title="TikTok-Version verfügbar">
+          <span class="material-symbols-rounded" style="font-size: 16px;">smart_display</span>
+        </span>
+        {% endif %}
+      </div>
     </div>
 
     <div class="story-card__title">{{ s.title }}</div>

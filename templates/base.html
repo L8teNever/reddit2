@@ -85,7 +85,7 @@
               <span id="job-status-text" style="font-size: 0.85rem; color: var(--on-surface-variant);"></span>
               <progress id="job-progress-bar" value="0" max="100" style="width: 100px; height: 8px;"></progress>
             </div>
-            <button class="btn btn--secondary" id="btn-pause" onclick="triggerPause()" style="display:none;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--error);color:var(--on-error);cursor:pointer;font-family:inherit;font-weight:500;">
+            <button class="btn btn--error" id="btn-pause" onclick="triggerPause()" style="display:none;">
               <span class="material-symbols-rounded" style="font-size:18px;">pause</span> Pause
             </button>
             <button class="btn btn--secondary" id="btn-scrape" onclick="triggerJob('/api/trigger/scrape')" style="display:flex;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--surface-container-high);color:var(--on-surface);cursor:pointer;font-family:inherit;font-weight:500;">
