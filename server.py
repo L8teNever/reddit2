@@ -227,6 +227,52 @@ def create_app(config: dict, db: Database) -> Flask:
         finally:
             job_state["status"] = "idle"
 
+    def run_bulk_generate():
+        nonlocal job_state
+        job_state["status"] = "running"
+        job_state["message"] = "Bulk video generation..."
+        job_state["should_pause"] = False
+        try:
+            # Hol alle Stories, die KI-verarbeitet sind, aber noch kein Video haben
+            stories = [s for s in db.get_stories(limit=1000, processed=True) if not s.get("video_generated_at")]
+            job_state["total"] = len(stories)
+            job_state["progress"] = 0
+            
+            if not stories:
+                job_state["message"] = "No stories waiting for video generation."
+            else:
+                done = 0
+                for s in stories:
+                    if job_state.get("should_pause"):
+                        job_state["message"] = f"Bulk stopped. Created {done} videos."
+                        break
+                    
+                    job_state["message"] = f"Generating Video: {s.get('story_code')}..."
+                    try:
+                        from main import cmd_generate
+                        from argparse import Namespace
+                        args = Namespace(config="config.json", code=s.get("story_code"), words=250)
+                        cmd_generate(args)
+                        done += 1
+                    except Exception as e:
+                        print(f"Error in bulk generate for {s.get('story_code')}: {e}")
+                    
+                    job_state["progress"] += 1
+                
+                if not job_state.get("should_pause"):
+                    job_state["message"] = f"Bulk finished: {done} videos created."
+        except Exception as e:
+            job_state["message"] = f"Error in bulk: {str(e)}"
+        finally:
+            job_state["status"] = "idle"
+
+    @app.route("/api/trigger/generate/bulk", methods=["POST"])
+    def trigger_bulk_generate():
+        if job_state["status"] != "idle":
+            return jsonify({"error": "A job is already running", "state": job_state}), 400
+        threading.Thread(target=run_bulk_generate, daemon=True).start()
+        return jsonify({"message": "Bulk video generation started"})
+
     @app.route("/api/trigger/generate/<code>", methods=["POST"])
     def trigger_generate(code):
         if job_state["status"] != "idle":

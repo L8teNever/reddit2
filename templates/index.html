@@ -60,10 +60,10 @@
           <span class="material-symbols-rounded" style="font-size: 16px;">movie</span>
         </span>
         {% endif %}
-        {% if s.processed_at %}
-        <span class="story-card__tiktok-badge" title="TikTok-Version verfügbar">
-          <span class="material-symbols-rounded" style="font-size: 16px;">smart_display</span>
-        </span>
+        {% if s.processed_at and not s.video_generated_at %}
+        <button class="story-card__quick-gen" onclick="event.preventDefault(); triggerJob('/api/trigger/generate/{{ s.story_code }}')" title="Video jetzt generieren">
+          <span class="material-symbols-rounded" style="font-size: 16px;">movie</span>
+        </button>
         {% endif %}
       </div>
     </div>

@@ -341,6 +341,25 @@ code {
   color: var(--md-sys-color-on-secondary-container);
 }
 
+.story-card__quick-gen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.story-card__quick-gen:hover {
+  background: var(--md-sys-color-primary);
+  color: #fff;
+  transform: scale(1.1);
+}
+
 .story-card__title {
   font-size: 1.15rem;
   font-weight: 600;
