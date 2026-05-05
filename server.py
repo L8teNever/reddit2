@@ -128,14 +128,15 @@ def create_app(config: dict, db: Database) -> Flask:
 
     import threading
     from scraper import scrape_all
-    from processor import process_batch
+    from processor import process_batch, process_one
 
-    job_state = {"status": "idle", "message": ""}
+    job_state = {"status": "idle", "message": "", "progress": 0, "total": 0, "should_pause": False}
 
     def run_scrape():
         nonlocal job_state
         job_state["status"] = "running"
         job_state["message"] = "Scraping in progress..."
+        job_state["should_pause"] = False
         try:
             scrape_all(config, db)
             job_state["message"] = "Scraping finished successfully."
@@ -148,15 +149,35 @@ def create_app(config: dict, db: Database) -> Flask:
         nonlocal job_state
         job_state["status"] = "running"
         job_state["message"] = "Processing in progress..."
+        job_state["should_pause"] = False
         try:
             model = config["settings"].get("ollama_model", "llama3.2")
             ensure_ollama(model)
             stories = db.get_unprocessed_stories()
+            
+            job_state["total"] = len(stories)
+            job_state["progress"] = 0
+            
             if not stories:
                 job_state["message"] = "No unprocessed stories found."
             else:
-                done, failed = process_batch(stories, model, config["settings"]["stories_dir"], db)
-                job_state["message"] = f"Processing finished: {done} OK, {failed} Failed."
+                done = failed = 0
+                for story in stories:
+                    if job_state.get("should_pause"):
+                        job_state["message"] = f"Paused. Processed {done} OK, {failed} Failed."
+                        break
+                    
+                    job_state["message"] = f"Processing: {story.get('title', '')[:40]}..."
+                    try:
+                        process_one(story, model, config["settings"]["stories_dir"], db)
+                        done += 1
+                    except Exception:
+                        failed += 1
+                    
+                    job_state["progress"] += 1
+                
+                if not job_state.get("should_pause"):
+                    job_state["message"] = f"Processing finished: {done} OK, {failed} Failed."
         except Exception as e:
             job_state["message"] = f"Error during processing: {str(e)}"
         finally:
@@ -175,6 +196,13 @@ def create_app(config: dict, db: Database) -> Flask:
             return jsonify({"error": "A job is already running", "state": job_state}), 400
         threading.Thread(target=run_process, daemon=True).start()
         return jsonify({"message": "Processing started"})
+
+    @app.route("/api/trigger/pause", methods=["POST"])
+    def trigger_pause():
+        if job_state["status"] == "running":
+            job_state["should_pause"] = True
+            return jsonify({"message": "Pause requested"})
+        return jsonify({"message": "No job running"})
 
     def run_generate(code, words):
         nonlocal job_state

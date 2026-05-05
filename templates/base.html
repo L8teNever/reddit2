@@ -68,7 +68,13 @@
           <h1 class="top-app-bar__title">Reddit Stories</h1>
           {% endblock %}
           <div class="top-app-bar__actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
-            <span id="job-status-text" style="font-size: 0.85rem; color: var(--on-surface-variant); display: none;"></span>
+            <div id="job-progress-container" style="display: none; align-items: center; gap: 8px;">
+              <span id="job-status-text" style="font-size: 0.85rem; color: var(--on-surface-variant);"></span>
+              <progress id="job-progress-bar" value="0" max="100" style="width: 100px; height: 8px;"></progress>
+            </div>
+            <button class="btn btn--secondary" id="btn-pause" onclick="triggerPause()" style="display:none;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--error);color:var(--on-error);cursor:pointer;font-family:inherit;font-weight:500;">
+              <span class="material-symbols-rounded" style="font-size:18px;">pause</span> Pause
+            </button>
             <button class="btn btn--secondary" id="btn-scrape" onclick="triggerJob('/api/trigger/scrape')" style="display:flex;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--surface-container-high);color:var(--on-surface);cursor:pointer;font-family:inherit;font-weight:500;">
               <span class="material-symbols-rounded" style="font-size:18px;">download</span> Scrape
             </button>
@@ -95,35 +101,56 @@
         })
         .catch(err => alert("Error triggering job"));
     }
+
+    function triggerPause() {
+      fetch('/api/trigger/pause', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => console.log("Pause requested"));
+    }
     
     function pollStatus() {
       fetch('/api/job/status')
         .then(res => res.json())
         .then(data => {
+          const container = document.getElementById('job-progress-container');
           const text = document.getElementById('job-status-text');
+          const pbar = document.getElementById('job-progress-bar');
           const btnS = document.getElementById('btn-scrape');
           const btnP = document.getElementById('btn-process');
+          const btnPause = document.getElementById('btn-pause');
           
           if (data.status === 'running') {
-            text.style.display = 'block';
-            text.textContent = data.message;
+            container.style.display = 'flex';
+            if (data.total > 0) {
+                text.textContent = `${data.message} (${data.progress}/${data.total})`;
+                pbar.style.display = 'block';
+                pbar.max = data.total;
+                pbar.value = data.progress;
+            } else {
+                text.textContent = data.message;
+                pbar.style.display = 'none';
+            }
             btnS.disabled = true;
             btnS.style.opacity = '0.5';
             btnP.disabled = true;
             btnP.style.opacity = '0.5';
-            setTimeout(pollStatus, 2000);
+            btnPause.style.display = 'flex';
+            
+            setTimeout(pollStatus, 1500);
           } else {
             btnS.disabled = false;
             btnS.style.opacity = '1';
             btnP.disabled = false;
             btnP.style.opacity = '1';
+            btnPause.style.display = 'none';
+            pbar.style.display = 'none';
             
             if (data.message && text.textContent !== data.message && data.message !== "") {
                text.textContent = data.message;
-               text.style.display = 'block';
-               setTimeout(() => text.style.display = 'none', 8000);
+               container.style.display = 'flex';
+               setTimeout(() => container.style.display = 'none', 8000);
             } else if (!data.message || data.message === "") {
-               text.style.display = 'none';
+               container.style.display = 'none';
             }
           }
         })
