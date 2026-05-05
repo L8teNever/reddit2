@@ -181,13 +181,42 @@ def create_app(config: dict, db: Database) -> Flask:
                         done += 1
                     except Exception:
                         failed += 1
-                    
-                    job_state["progress"] += 1
+    def run_process(code=None):
+        nonlocal job_state
+        job_state["status"] = "running"
+        job_state["message"] = "KI-Verarbeitung läuft..."
+        job_state["should_pause"] = False
+        try:
+            if code:
+                # Einzelne Story verarbeiten (auch wenn schon processed)
+                stories = [db.get_story_by_code(code)]
+            else:
+                # Alle unverarbeiteten
+                stories = db.get_stories(limit=1000, processed=False)
+            
+            job_state["total"] = len(stories)
+            job_state["progress"] = 0
+            
+            for s in stories:
+                if job_state.get("should_pause"):
+                    job_state["message"] = "Pausiert."
+                    break
                 
-                if not job_state.get("should_pause"):
-                    job_state["message"] = f"Processing finished: {done} OK, {failed} Failed."
+                job_state["message"] = f"Verarbeite: {s.get('story_code')}..."
+                try:
+                    from main import cmd_process
+                    from argparse import Namespace
+                    args = Namespace(config="config.json", subreddit=None, code=s.get('story_code'), model=None)
+                    cmd_process(args)
+                except Exception as e:
+                    print(f"Error in background process for {s.get('story_code')}: {e}")
+                
+                job_state["progress"] += 1
+            
+            if not job_state.get("should_pause"):
+                job_state["message"] = "Verarbeitung abgeschlossen."
         except Exception as e:
-            job_state["message"] = f"Error during processing: {str(e)}"
+            job_state["message"] = f"Fehler: {str(e)}"
         finally:
             job_state["status"] = "idle"
 

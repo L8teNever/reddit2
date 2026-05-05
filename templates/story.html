@@ -98,6 +98,12 @@
         <pre class="json-block">{{ tiktok | tojson(indent=2) }}</pre>
       </div>
 
+      <div style="margin-top: 24px; text-align: right;">
+        <button class="btn btn--tonal" onclick="triggerJob('/api/trigger/process/{{ story.story_code }}')">
+          <span class="material-symbols-rounded">refresh</span> TikTok Text neu generieren (KI)
+        </button>
+      </div>
+
       {% else %}
       <div class="empty-state" style="padding:32px 0;">
         <span class="material-symbols-rounded empty-state__icon">smart_display</span>
@@ -121,6 +127,12 @@
         </video>
       </div>
       {% endfor %}
+
+      <div style="margin-top: 24px; text-align: right;">
+        <button class="btn btn--tonal" onclick="triggerJob('/api/trigger/generate/{{ story.story_code }}')">
+          <span class="material-symbols-rounded">movie_edit</span> Video neu generieren (Render)
+        </button>
+      </div>
       {% else %}
       <div class="empty-state" style="padding:32px 0;">
         <span class="material-symbols-rounded empty-state__icon">videocam_off</span>
