@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.venv/
+storage/
+stories/
+stories.db
+.claude/
+*.txt
+config.json

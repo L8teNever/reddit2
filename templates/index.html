@@ -1,0 +1,125 @@
+﻿{% extends "base.html" %}
+{% block title %}Reddit Stories{% endblock %}
+
+{% block breadcrumb %}
+<div class="top-app-bar__inner-row">
+  <h1 class="top-app-bar__title">Stories</h1>
+  <span class="top-app-bar__count">{{ total }} {% if current_sub %}in r/{{ current_sub }}{% endif %}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filter + Sort Bar -->
+<div class="filter-bar">
+
+  <!-- Subreddit Filter Chips -->
+  <div class="filter-chips" role="group" aria-label="Subreddit filtern">
+    <a href="/?sort={{ sort }}"
+       class="filter-chip {% if not current_sub %}filter-chip--active{% endif %}">
+      <span class="material-symbols-rounded">apps</span> Alle
+    </a>
+    {% for sub in sub_stats %}
+    <a href="/?subreddit={{ sub.subreddit }}&sort={{ sort }}"
+       class="filter-chip {% if current_sub == sub.subreddit %}filter-chip--active{% endif %}"
+       title="{{ sub.story_count }} Stories">
+      r/{{ sub.subreddit }}
+      <span class="filter-chip__count">{{ sub.story_count }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Sort -->
+  <div class="sort-bar">
+    <span class="sort-bar__label">Sortieren:</span>
+    <a href="?{% if current_sub %}subreddit={{ current_sub }}&{% endif %}sort=score"
+       class="sort-chip {% if sort == 'score' %}sort-chip--active{% endif %}">
+      <span class="material-symbols-rounded">arrow_upward</span> Score
+    </a>
+    <a href="?{% if current_sub %}subreddit={{ current_sub }}&{% endif %}sort=date"
+       class="sort-chip {% if sort == 'date' %}sort-chip--active{% endif %}">
+      <span class="material-symbols-rounded">schedule</span> Datum
+    </a>
+    <a href="?{% if current_sub %}subreddit={{ current_sub }}&{% endif %}sort=words"
+       class="sort-chip {% if sort == 'words' %}sort-chip--active{% endif %}">
+      <span class="material-symbols-rounded">text_fields</span> Wörter
+    </a>
+  </div>
+</div>
+
+<!-- Story Grid -->
+{% if stories %}
+<div class="story-grid">
+  {% for s in stories %}
+  <a href="/story/{{ s.story_code }}" class="story-card">
+    <div class="story-card__top">
+      <span class="story-card__code">{{ s.story_code }}</span>
+      {% if s.processed_at %}
+      <span class="story-card__tiktok-badge" title="TikTok-Version verfügbar">
+        <span class="material-symbols-rounded">smart_display</span>
+      </span>
+      {% endif %}
+    </div>
+
+    <div class="story-card__title">{{ s.title }}</div>
+
+    <div class="story-card__meta">
+      <span class="sub-chip">r/{{ s.subreddit }}</span>
+      <span class="meta-item">
+        <span class="material-symbols-rounded">person</span>
+        u/{{ s.author or '[deleted]' }}
+      </span>
+      <span class="meta-item">
+        <span class="material-symbols-rounded">arrow_upward</span>
+        {{ s.score }}
+      </span>
+      <span class="meta-item">
+        <span class="material-symbols-rounded">text_fields</span>
+        {{ s.word_count }} W
+      </span>
+    </div>
+
+    <div class="story-card__date">{{ s.scraped_at[:10] if s.scraped_at else '' }}</div>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if pages > 1 %}
+<nav class="pagination" aria-label="Seiten">
+  {% if page > 1 %}
+  <a href="?{% if current_sub %}subreddit={{ current_sub }}&{% endif %}sort={{ sort }}&page={{ page - 1 }}"
+     class="pagination__btn">
+    <span class="material-symbols-rounded">chevron_left</span>
+  </a>
+  {% endif %}
+
+  {% for p in range(1, pages + 1) %}
+    {% if p == page %}
+    <span class="pagination__num pagination__num--active">{{ p }}</span>
+    {% elif p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+    <a href="?{% if current_sub %}subreddit={{ current_sub }}&{% endif %}sort={{ sort }}&page={{ p }}"
+       class="pagination__num">{{ p }}</a>
+    {% elif p == page - 3 or p == page + 3 %}
+    <span class="pagination__ellipsis">…</span>
+    {% endif %}
+  {% endfor %}
+
+  {% if page < pages %}
+  <a href="?{% if current_sub %}subreddit={{ current_sub }}&{% endif %}sort={{ sort }}&page={{ page + 1 }}"
+     class="pagination__btn">
+    <span class="material-symbols-rounded">chevron_right</span>
+  </a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+  <span class="material-symbols-rounded empty-state__icon">search_off</span>
+  <p class="empty-state__text">Keine Stories gefunden.</p>
+  <p class="empty-state__hint">Führe <code>python main.py scrape</code> aus.</p>
+</div>
+{% endif %}
+
+{% endblock %}

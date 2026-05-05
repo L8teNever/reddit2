@@ -1,0 +1,145 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ story.title }} — Reddit Stories{% endblock %}
+
+{% block breadcrumb %}
+<div class="top-app-bar__breadcrumb">
+  <a href="/" class="breadcrumb__link">Home</a>
+  <span class="material-symbols-rounded breadcrumb__sep">chevron_right</span>
+  <a href="/{{ story.subreddit }}" class="breadcrumb__link">r/{{ story.subreddit }}</a>
+  <span class="material-symbols-rounded breadcrumb__sep">chevron_right</span>
+  <span class="breadcrumb__current">{{ story.story_code }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<article class="story-container">
+
+  <!-- Header -->
+  <div class="story-header">
+    <div class="story-code-badge">{{ story.story_code }}</div>
+    <h1 class="story-title">{{ story.title }}</h1>
+    <div class="story-meta">
+      <span class="chip"><span class="material-symbols-rounded">person</span>u/{{ story.author or '[deleted]' }}</span>
+      <span class="chip"><span class="material-symbols-rounded">arrow_upward</span>{{ story.score }}</span>
+      <span class="chip"><span class="material-symbols-rounded">text_fields</span>{{ story.word_count }} Wörter</span>
+      {% if story.scraped_at %}<span class="chip"><span class="material-symbols-rounded">schedule</span>{{ story.scraped_at[:10] }}</span>{% endif %}
+      {% if story.url %}<a href="{{ story.url }}" target="_blank" rel="noopener" class="chip chip--link"><span class="material-symbols-rounded">open_in_new</span>Reddit</a>{% endif %}
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <input type="radio" name="tab" id="tab-original" class="tab-radio" checked>
+    <input type="radio" name="tab" id="tab-tiktok" class="tab-radio" {% if not tiktok %}disabled{% endif %}>
+    <input type="radio" name="tab" id="tab-video"  class="tab-radio" {% if not video_parts %}disabled{% endif %}>
+
+    <div class="tab-bar">
+      <label for="tab-original" class="tab-label">
+        <span class="material-symbols-rounded">article</span>
+        Original
+      </label>
+      <label for="tab-tiktok" class="tab-label {% if not tiktok %}tab-label--disabled{% endif %}">
+        <span class="material-symbols-rounded">smart_display</span>
+        TikTok
+        {% if not tiktok %}<span style="font-size:10px;opacity:.6"> (nicht verarbeitet)</span>{% endif %}
+      </label>
+      <label for="tab-video" class="tab-label {% if not video_parts %}tab-label--disabled{% endif %}">
+        <span class="material-symbols-rounded">videocam</span>
+        Video
+        {% if video_parts %}<span style="font-size:10px;opacity:.7"> ({{ video_parts|length }} Part{% if video_parts|length != 1 %}s{% endif %})</span>{% endif %}
+      </label>
+    </div>
+
+    <!-- Original Story Panel -->
+    <div class="tab-panel" id="panel-original">
+      <div class="story-divider"></div>
+      <div class="story-body">
+        {% for paragraph in original_body.split('\n\n') %}
+          {% if paragraph.strip() %}<p>{{ paragraph.strip() }}</p>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- TikTok Panel -->
+    <div class="tab-panel" id="panel-tiktok">
+      {% if tiktok %}
+      <div class="story-divider"></div>
+
+      <div class="tiktok-card">
+        <div class="tiktok-card__label">TikTok Titel</div>
+        <div class="tiktok-card__value tiktok-card__value--title">{{ tiktok.tiktok_title }}</div>
+      </div>
+
+      <div class="tiktok-card">
+        <div class="tiktok-card__label">Beschreibung</div>
+        <div class="tiktok-card__value">{{ tiktok.tiktok_description }}</div>
+      </div>
+
+      <div class="tiktok-card">
+        <div class="tiktok-card__label">Hashtags</div>
+        <div class="tiktok-card__hashtags">
+          {% for tag in tiktok.hashtags %}
+          <span class="chip chip--primary">{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="tiktok-card">
+        <div class="tiktok-card__label">Bereinigte Story</div>
+        <div class="story-body" style="margin-top:8px;">
+          {% for paragraph in tiktok.story.split('\n\n') %}
+            {% if paragraph.strip() %}<p>{{ paragraph.strip() }}</p>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="tiktok-card">
+        <div class="tiktok-card__label">JSON (Rohdaten)</div>
+        <pre class="json-block">{{ tiktok | tojson(indent=2) }}</pre>
+      </div>
+
+      {% else %}
+      <div class="empty-state" style="padding:32px 0;">
+        <span class="material-symbols-rounded empty-state__icon">smart_display</span>
+        <p class="empty-state__text">Noch nicht verarbeitet.</p>
+        <p class="empty-state__hint">
+          Führe <code>python main.py process --code {{ story.story_code }}</code> aus.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Video Panel -->
+    <div class="tab-panel" id="panel-video">
+      {% if video_parts %}
+      <div class="story-divider"></div>
+      {% for part in video_parts %}
+      <div class="tiktok-card">
+        <div class="tiktok-card__label">Part {{ part }}</div>
+        <video controls playsinline style="width:100%;max-width:360px;border-radius:12px;display:block;margin:8px auto 0;">
+          <source src="/video/{{ story.story_code }}/{{ part }}.mp4" type="video/mp4">
+        </video>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="empty-state" style="padding:32px 0;">
+        <span class="material-symbols-rounded empty-state__icon">videocam_off</span>
+        <p class="empty-state__text">Noch kein Video generiert.</p>
+        <p class="empty-state__hint">
+          Führe <code>python main.py generate --code {{ story.story_code }}</code> aus.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div><!-- /tabs -->
+
+  <div class="story-footer">
+    <a href="/{{ story.subreddit }}" class="btn btn--tonal">
+      <span class="material-symbols-rounded">arrow_back</span>
+      Zurück zu r/{{ story.subreddit }}
+    </a>
+  </div>
+
+</article>
+{% endblock %}

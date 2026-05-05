@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Reddit Stories{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- Navigation Rail -->
+    <nav class="nav-rail" aria-label="Navigation">
+      <div class="nav-rail__header">
+        <a href="/" class="nav-rail__logo" title="Reddit Stories">
+          <span class="material-symbols-rounded">forum</span>
+        </a>
+      </div>
+
+      <div class="nav-rail__items">
+        <a href="/"
+           class="nav-rail__item {% if request.path == '/' and not request.args.get('subreddit') %}nav-rail__item--active{% endif %}"
+           title="Alle Stories">
+          <div class="nav-rail__indicator">
+            <span class="material-symbols-rounded">home</span>
+          </div>
+          <span class="nav-rail__label">Alle</span>
+        </a>
+
+        <a href="/?sort=date"
+           class="nav-rail__item {% if request.args.get('sort') == 'date' and not request.args.get('subreddit') %}nav-rail__item--active{% endif %}"
+           title="Neueste Stories">
+          <div class="nav-rail__indicator">
+            <span class="material-symbols-rounded">schedule</span>
+          </div>
+          <span class="nav-rail__label">Neu</span>
+        </a>
+
+        <a href="/?processed=1"
+           class="nav-rail__item {% if request.args.get('processed') %}nav-rail__item--active{% endif %}"
+           title="TikTok-fertige Stories">
+          <div class="nav-rail__indicator">
+            <span class="material-symbols-rounded">smart_display</span>
+          </div>
+          <span class="nav-rail__label">TikTok</span>
+        </a>
+      </div>
+
+      <div class="nav-rail__footer">
+        <div class="nav-rail__stats">
+          <span class="nav-rail__stat-num">{{ total_stories }}</span>
+          <span class="nav-rail__stat-label">Stories</span>
+        </div>
+        <div class="nav-rail__stats">
+          <span class="nav-rail__stat-num">{{ processed_stories }}</span>
+          <span class="nav-rail__stat-label">TikTok</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-app-bar">
+        <div class="top-app-bar__inner">
+          {% block breadcrumb %}
+          <h1 class="top-app-bar__title">Reddit Stories</h1>
+          {% endblock %}
+        </div>
+      </header>
+      <div class="content-area">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+  </div>
+</body>
+</html>

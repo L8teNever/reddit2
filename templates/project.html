@@ -1,0 +1,54 @@
+﻿{% extends "base.html" %}
+{% block title %}r/{{ subreddit }} — Reddit Stories{% endblock %}
+
+{% block breadcrumb %}
+<div class="top-app-bar__breadcrumb">
+  <a href="/" class="breadcrumb__link">Home</a>
+  <span class="material-symbols-rounded breadcrumb__sep">chevron_right</span>
+  <span class="breadcrumb__current">r/{{ subreddit }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="page-header">
+    <h2 class="page-header__title">r/{{ subreddit }}</h2>
+    <span class="chip chip--primary">{{ total }} Stories</span>
+  </div>
+
+  {% if stories %}
+  <div class="list-card">
+    {% for s in stories %}
+    <a href="/story/{{ s.story_code }}" class="list-item list-item--link">
+      <div class="list-item__content">
+        <div class="list-item__headline">{{ s.title }}</div>
+        <div class="list-item__supporting">
+          <span class="code-badge">{{ s.story_code }}</span>
+          &nbsp;·&nbsp;
+          <span class="material-symbols-rounded list-item__icon">person</span> u/{{ s.author or '[deleted]' }}
+          &nbsp;·&nbsp;
+          <span class="material-symbols-rounded list-item__icon">arrow_upward</span> {{ s.score }}
+          &nbsp;·&nbsp;
+          <span class="material-symbols-rounded list-item__icon">text_fields</span> {{ s.word_count }} Wörter
+          {% if s.processed_at %}
+          &nbsp;·&nbsp;
+          <span class="chip chip--tiktok" style="padding:2px 8px;font-size:10px;">TikTok ✓</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="list-item__trailing">
+        <span class="chip">{{ s.scraped_at[:10] if s.scraped_at else '' }}</span>
+        <span class="material-symbols-rounded">chevron_right</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="material-symbols-rounded empty-state__icon">inbox</span>
+    <p class="empty-state__text">Noch keine Stories in r/{{ subreddit }}.</p>
+    <p class="empty-state__hint">Führe <code>python main.py scrape --subreddit {{ subreddit }}</code> aus.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
