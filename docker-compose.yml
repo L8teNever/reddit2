@@ -23,7 +23,7 @@ services:
     #           capabilities: [gpu]
 
   app:
-    build: .
+    image: ghcr.io/l8tenever/reddit:latest
     restart: unless-stopped
     ports:
       - "5000:5000"
