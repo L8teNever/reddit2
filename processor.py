@@ -56,6 +56,17 @@ Story:
 """
 
 
+def unload_model(model_name: str) -> None:
+    """Explicitly unloads the model from memory (RAM/VRAM)."""
+    try:
+        requests.post(
+            f"{OLLAMA_BASE}/api/generate",
+            json={"model": model_name, "keep_alive": 0},
+            timeout=5
+        )
+    except:
+        pass
+
 def check_ollama() -> bool:
     try:
         r = requests.get(f"{OLLAMA_BASE}/api/tags", timeout=5)

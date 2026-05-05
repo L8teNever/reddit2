@@ -216,7 +216,13 @@ def create_app(config: dict, db: Database) -> Flask:
         nonlocal job_state
         job_state["status"] = "running"
         job_state["message"] = f"Generating video for {code}..."
+        job_state["should_pause"] = False
         try:
+            # Unload Ollama to free RAM/VRAM
+            model = config["settings"].get("ollama_model", "llama3.2")
+            from processor import unload_model
+            unload_model(model)
+            
             from main import cmd_generate
             from argparse import Namespace
             args = Namespace(config="config.json", code=code, words=words)
@@ -233,6 +239,11 @@ def create_app(config: dict, db: Database) -> Flask:
         job_state["message"] = "Bulk video generation..."
         job_state["should_pause"] = False
         try:
+            # Unload Ollama to free RAM/VRAM
+            model = config["settings"].get("ollama_model", "llama3.2")
+            from processor import unload_model
+            unload_model(model)
+
             # Hol alle Stories, die KI-verarbeitet sind, aber noch kein Video haben
             stories = [s for s in db.get_stories(limit=1000, processed=True) if not s.get("video_generated_at")]
             job_state["total"] = len(stories)
