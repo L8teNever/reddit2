@@ -153,34 +153,6 @@ def create_app(config: dict, db: Database) -> Flask:
         finally:
             job_state["status"] = "idle"
 
-    def run_process():
-        nonlocal job_state
-        job_state["status"] = "running"
-        job_state["message"] = "Processing in progress..."
-        job_state["should_pause"] = False
-        try:
-            model = config["settings"].get("ollama_model", "llama3.2")
-            ensure_ollama(model)
-            stories = db.get_unprocessed_stories()
-            
-            job_state["total"] = len(stories)
-            job_state["progress"] = 0
-            
-            if not stories:
-                job_state["message"] = "No unprocessed stories found."
-            else:
-                done = failed = 0
-                for story in stories:
-                    if job_state.get("should_pause"):
-                        job_state["message"] = f"Paused. Processed {done} OK, {failed} Failed."
-                        break
-                    
-                    job_state["message"] = f"Processing: {story.get('title', '')[:40]}..."
-                    try:
-                        process_one(story, model, config["settings"]["stories_dir"], db)
-                        done += 1
-                    except Exception:
-                        failed += 1
     def run_process(code=None):
         nonlocal job_state
         job_state["status"] = "running"
@@ -189,7 +161,8 @@ def create_app(config: dict, db: Database) -> Flask:
         try:
             if code:
                 # Einzelne Story verarbeiten (auch wenn schon processed)
-                stories = [db.get_story_by_code(code)]
+                story = db.get_story_by_code(code)
+                stories = [story] if story else []
             else:
                 # Alle unverarbeiteten
                 stories = db.get_stories(limit=1000, processed=False)
@@ -197,24 +170,27 @@ def create_app(config: dict, db: Database) -> Flask:
             job_state["total"] = len(stories)
             job_state["progress"] = 0
             
-            for s in stories:
-                if job_state.get("should_pause"):
-                    job_state["message"] = "Pausiert."
-                    break
+            if not stories:
+                job_state["message"] = "Keine neuen Stories zum Verarbeiten."
+            else:
+                for s in stories:
+                    if job_state.get("should_pause"):
+                        job_state["message"] = "Pausiert."
+                        break
+                    
+                    job_state["message"] = f"Verarbeite: {s.get('story_code')}..."
+                    try:
+                        from main import cmd_process
+                        from argparse import Namespace
+                        args = Namespace(config="config.json", subreddit=None, code=s.get('story_code'), model=None)
+                        cmd_process(args)
+                    except Exception as e:
+                        print(f"Error in background process for {s.get('story_code')}: {e}")
+                    
+                    job_state["progress"] += 1
                 
-                job_state["message"] = f"Verarbeite: {s.get('story_code')}..."
-                try:
-                    from main import cmd_process
-                    from argparse import Namespace
-                    args = Namespace(config="config.json", subreddit=None, code=s.get('story_code'), model=None)
-                    cmd_process(args)
-                except Exception as e:
-                    print(f"Error in background process for {s.get('story_code')}: {e}")
-                
-                job_state["progress"] += 1
-            
-            if not job_state.get("should_pause"):
-                job_state["message"] = "Verarbeitung abgeschlossen."
+                if not job_state.get("should_pause"):
+                    job_state["message"] = "Verarbeitung abgeschlossen."
         except Exception as e:
             job_state["message"] = f"Fehler: {str(e)}"
         finally:
