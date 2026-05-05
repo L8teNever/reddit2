@@ -39,12 +39,21 @@
         </a>
 
         <a href="/?processed=1"
-           class="nav-rail__item {% if request.args.get('processed') %}nav-rail__item--active{% endif %}"
+           class="nav-rail__item {% if request.args.get('processed') and not request.args.get('video') %}nav-rail__item--active{% endif %}"
            title="TikTok-fertige Stories">
           <div class="nav-rail__indicator">
             <span class="material-symbols-rounded">smart_display</span>
           </div>
           <span class="nav-rail__label">TikTok</span>
+        </a>
+
+        <a href="/?video=1"
+           class="nav-rail__item {% if request.args.get('video') %}nav-rail__item--active{% endif %}"
+           title="Video-fertige Stories">
+          <div class="nav-rail__indicator">
+            <span class="material-symbols-rounded">movie</span>
+          </div>
+          <span class="nav-rail__label">Video</span>
         </a>
       </div>
 
@@ -56,6 +65,10 @@
         <div class="nav-rail__stats">
           <span class="nav-rail__stat-num">{{ processed_stories }}</span>
           <span class="nav-rail__stat-label">TikTok</span>
+        </div>
+        <div class="nav-rail__stats">
+          <span class="nav-rail__stat-num">{{ video_stories }}</span>
+          <span class="nav-rail__stat-label">Video</span>
         </div>
       </div>
     </nav>

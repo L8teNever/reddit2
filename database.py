@@ -1,4 +1,4 @@
-﻿import random
+import random
 import sqlite3
 import string
 from datetime import datetime, timezone
@@ -41,6 +41,7 @@ class Database:
             ("story_code",   "TEXT"),
             ("json_path",    "TEXT"),
             ("processed_at", "TEXT"),
+            ("video_generated_at", "TEXT"),
         ]:
             if col not in existing:
                 self._conn.execute(
@@ -160,6 +161,13 @@ class Database:
         )
         self._conn.commit()
 
+    def mark_video_generated(self, code: str):
+        self._conn.execute(
+            "UPDATE stories SET video_generated_at = ? WHERE story_code = ?",
+            (datetime.now(timezone.utc).isoformat(), code),
+        )
+        self._conn.commit()
+
     def update_file_path(self, story_id: int, file_path: str):
         self._conn.execute(
             "UPDATE stories SET file_path = ? WHERE id = ?", (file_path, story_id)
@@ -176,6 +184,8 @@ class Database:
         sort: str = "score",
         limit: int = 24,
         offset: int = 0,
+        processed: bool = False,
+        video: bool = False,
     ) -> list[dict]:
         _sort_map = {
             "score": "score DESC",
@@ -183,33 +193,49 @@ class Database:
             "words": "word_count DESC",
         }
         order = _sort_map.get(sort, "score DESC")
+        
+        where_clauses = []
+        params = []
         if subreddit:
-            cur = self._conn.execute(
-                f"""SELECT id, story_code, subreddit, title, author, score,
-                           word_count, scraped_at, processed_at
-                    FROM stories WHERE subreddit = ?
-                    ORDER BY {order} LIMIT ? OFFSET ?""",
-                (subreddit.lower(), limit, offset),
-            )
-        else:
-            cur = self._conn.execute(
-                f"""SELECT id, story_code, subreddit, title, author, score,
-                           word_count, scraped_at, processed_at
-                    FROM stories
-                    ORDER BY {order} LIMIT ? OFFSET ?""",
-                (limit, offset),
-            )
+            where_clauses.append("subreddit = ?")
+            params.append(subreddit.lower())
+        if video:
+            where_clauses.append("video_generated_at IS NOT NULL")
+        elif processed:
+            where_clauses.append("processed_at IS NOT NULL")
+            
+        where_str = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        
+        cur = self._conn.execute(
+            f"""SELECT id, story_code, subreddit, title, author, score,
+                       word_count, scraped_at, processed_at, video_generated_at
+                FROM stories
+                {where_str}
+                ORDER BY {order} LIMIT ? OFFSET ?""",
+            (*params, limit, offset),
+        )
         return [dict(row) for row in cur.fetchall()]
 
-    def get_total_count(self, subreddit: str = "") -> int:
+    def get_total_count(self, subreddit: str = "", processed: bool = False, video: bool = False) -> int:
+        where_clauses = []
+        params = []
         if subreddit:
-            return self._conn.execute(
-                "SELECT COUNT(*) FROM stories WHERE subreddit = ?",
-                (subreddit.lower(),),
-            ).fetchone()[0]
-        return self._conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+            where_clauses.append("subreddit = ?")
+            params.append(subreddit.lower())
+        if video:
+            where_clauses.append("video_generated_at IS NOT NULL")
+        elif processed:
+            where_clauses.append("processed_at IS NOT NULL")
+            
+        where_str = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        return self._conn.execute(f"SELECT COUNT(*) FROM stories {where_str}", params).fetchone()[0]
 
     def get_processed_count(self) -> int:
         return self._conn.execute(
             "SELECT COUNT(*) FROM stories WHERE processed_at IS NOT NULL"
+        ).fetchone()[0]
+
+    def get_video_count(self) -> int:
+        return self._conn.execute(
+            "SELECT COUNT(*) FROM stories WHERE video_generated_at IS NOT NULL"
         ).fetchone()[0]

@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import re
 import sys
@@ -169,7 +169,8 @@ def cmd_generate(args):
             print(f"OK → {out}")
         except Exception as e:
             print(f"FEHLER: {e}")
-
+            
+    db.mark_video_generated(story["story_code"])
     db.close()
 
 

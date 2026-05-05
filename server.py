@@ -18,6 +18,7 @@ def create_app(config: dict, db: Database) -> Flask:
             "subreddits_list": subreddits_list,
             "total_stories": db.get_total_count(),
             "processed_stories": db.get_processed_count(),
+            "video_stories": db.get_video_count(),
         }
 
     # ── Index: alle Stories, filterbar + sortierbar ───────────────────────
@@ -36,10 +37,14 @@ def create_app(config: dict, db: Database) -> Flask:
         if sort not in ("score", "date", "words"):
             sort = "score"
 
+        processed = request.args.get("processed") == "1"
+        video     = request.args.get("video") == "1"
+
         stories = db.get_stories(
-            subreddit=subreddit, sort=sort, limit=per_page, offset=offset
+            subreddit=subreddit, sort=sort, limit=per_page, offset=offset,
+            processed=processed, video=video
         )
-        total = db.get_total_count(subreddit=subreddit)
+        total = db.get_total_count(subreddit=subreddit, processed=processed, video=video)
         pages = max(1, -(-total // per_page))  # ceiling division
 
         sub_stats = db.get_all_subreddits()
@@ -54,6 +59,8 @@ def create_app(config: dict, db: Database) -> Flask:
             sort=sort,
             current_sub=subreddit,
             sub_stats=sub_stats,
+            is_processed=processed,
+            is_video=video,
         )
 
     # ── Story ─────────────────────────────────────────────────────────────
