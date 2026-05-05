@@ -109,7 +109,9 @@
         <span class="material-symbols-rounded empty-state__icon">smart_display</span>
         <p class="empty-state__text">Noch nicht verarbeitet.</p>
         <p class="empty-state__hint">
-          Führe <code>python main.py process --code {{ story.story_code }}</code> aus.
+          <button class="btn btn--filled" onclick="triggerJob('/api/trigger/process/{{ story.story_code }}')">
+            <span class="material-symbols-rounded">smart_toy</span> Jetzt mit KI verarbeiten
+          </button>
         </p>
       </div>
       {% endif %}
@@ -138,9 +140,13 @@
         <span class="material-symbols-rounded empty-state__icon">videocam_off</span>
         <p class="empty-state__text">Noch kein Video generiert.</p>
         <p class="empty-state__hint">
-          <button class="btn btn--primary" onclick="triggerJob('/api/trigger/generate/{{ story.story_code }}')" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--primary);color:var(--on-primary);cursor:pointer;font-family:inherit;font-weight:500;">
-            <span class="material-symbols-rounded" style="font-size:18px;">movie</span> Video Generieren
+          {% if tiktok %}
+          <button class="btn btn--filled" onclick="triggerJob('/api/trigger/generate/{{ story.story_code }}')">
+            <span class="material-symbols-rounded">movie</span> Video jetzt generieren
           </button>
+          {% else %}
+          <p style="font-size:0.9rem;opacity:0.7;">Verarbeite die Story erst im "TikTok"-Tab mit der KI.</p>
+          {% endif %}
         </p>
       </div>
       {% endif %}
