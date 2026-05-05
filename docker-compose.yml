@@ -7,12 +7,6 @@ services:
       - "11436:11434"
     volumes:
       - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD-SHELL", "ollama list || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
     # GPU-Unterstützung (NVIDIA) — Kommentarzeichen entfernen zum Aktivieren:
     # deploy:
     #   resources:
@@ -36,8 +30,7 @@ services:
       - DB_PATH=/app/storage/stories.db
       - STORIES_DIR=/app/storage/stories
     depends_on:
-      ollama:
-        condition: service_healthy
+      - ollama
 
 volumes:
   ollama_data:
