@@ -24,12 +24,16 @@ services:
     volumes:
       - ./storage:/app/storage
       - ./data:/app/data
-      - ./config.json:/app/config.json
     environment:
       - OLLAMA_HOST=http://ollama:11434
       - OLLAMA_MODEL=llama3.2
       - DB_PATH=/app/storage/stories.db
       - STORIES_DIR=/app/storage/stories
+      - REDDIT_CLIENT_ID=vB0raE_Hwi8HoXc-ajEiyA
+      - REDDIT_CLIENT_SECRET=jpY0y06aQyARC2mSaMHaFVl8fInFnQ
+      - SUBREDDITS=AmItheAsshole,tifu,relationship_advice,TrueOffMyChest,MaliciousCompliance,ProRevenge,entitledparents,confession
+      - MIN_WORD_COUNT=200
+      - STORIES_PER_FETCH=50
     depends_on:
       - ollama
 

@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import re
 import time
@@ -22,8 +22,31 @@ _SESSION.headers.update({
 
 
 def load_config(config_path: str = "config.json") -> dict:
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
+    config = {
+        "subreddits": [s.strip() for s in os.environ.get("SUBREDDITS", "AmItheAsshole,tifu,relationship_advice").split(",") if s.strip()],
+        "settings": {
+            "min_word_count": int(os.environ.get("MIN_WORD_COUNT", "200")),
+            "stories_per_fetch": int(os.environ.get("STORIES_PER_FETCH", "50")),
+            "request_delay_seconds": float(os.environ.get("REQUEST_DELAY_SECONDS", "1.5")),
+            "user_agent": os.environ.get("USER_AGENT", "RedditStoryScraper/1.0"),
+            "db_path": os.environ.get("DB_PATH", "stories.db"),
+            "stories_dir": os.environ.get("STORIES_DIR", "stories"),
+            "reddit_api": {
+                "client_id": os.environ.get("REDDIT_CLIENT_ID", ""),
+                "client_secret": os.environ.get("REDDIT_CLIENT_SECRET", "")
+            }
+        }
+    }
+    
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                fc = json.load(f)
+                if "subreddits" in fc: config["subreddits"] = fc["subreddits"]
+                if "settings" in fc: config["settings"].update(fc["settings"])
+        except Exception:
+            pass
+
     s = config["settings"]
     s["db_path"]     = os.environ.get("DB_PATH",     s.get("db_path",     "stories.db"))
     s["stories_dir"] = os.environ.get("STORIES_DIR", s.get("stories_dir", "stories"))
