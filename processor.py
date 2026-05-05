@@ -79,7 +79,7 @@ def pull_model(model_name: str) -> None:
         f"{OLLAMA_BASE}/api/pull",
         json={"name": model_name},
         stream=True,
-        timeout=600,
+        timeout=1800,
     ) as r:
         r.raise_for_status()
         for raw_line in r.iter_lines():
@@ -186,7 +186,7 @@ def _call_ollama(prompt: str, model: str) -> dict:
         "system": _SYSTEM,
         "options": {"temperature": 0.7},
     }
-    r = requests.post(f"{OLLAMA_BASE}/api/generate", json=payload, timeout=180)
+    r = requests.post(f"{OLLAMA_BASE}/api/generate", json=payload, timeout=600)
     r.raise_for_status()
     raw = r.json().get("response", "").strip()
     # Strip accidental markdown code fences
