@@ -40,13 +40,13 @@ Given this Reddit story, produce TikTok-ready content as JSON with exactly these
 "tiktok_title"      : Catchy, hook-first title. Max 80 chars. Start with a question or shocking statement.
 "tiktok_description": Short teaser for the video description. Max 200 chars. No spoilers.
 "hashtags"          : Array of 8-12 hashtags. Always include "#storytime" and "#reddit". Add niche tags.
-"story"             : The cleaned story text:
-                        - Remove ALL URLs and hyperlinks (http..., markdown [text](url))
-                        - Remove image embeds (![alt](url)) and imgur links
-                        - Remove Reddit artifacts: [View Poll], [deleted], vote tallies
-                        - Remove excessive blank lines (max one blank line between paragraphs)
-                        - Keep the full narrative — do not shorten or summarize
-                        - Fix obvious typos
+"story"             : The EXACT ORIGINAL story text, ONLY cleaned up for Text-to-Speech:
+                        - CRITICAL: DO NOT SUMMARIZE. DO NOT SHORTEN. DO NOT REWRITE.
+                        - You MUST keep 100% of the original story length, details, and dialogue.
+                        - ONLY remove URLs, image embeds, and Reddit artifacts (like [View Poll], Edit:).
+                        - Remove excessive blank lines (max one blank line between paragraphs).
+                        - Fix obvious typos so the Text-to-Speech engine can read it perfectly.
+                        - The output word count MUST be nearly identical to the input word count.
 
 Subreddit: r/{subreddit}
 Title: {title}
