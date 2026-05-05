@@ -4,7 +4,7 @@ from pathlib import Path
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_file, url_for
 
 from database import Database
-from processor import check_ollama, list_models
+from processor import check_ollama, list_models, ensure_ollama
 
 
 def create_app(config: dict, db: Database) -> Flask:
