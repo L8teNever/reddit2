@@ -3,14 +3,12 @@ services:
   ollama:
     image: ollama/ollama
     restart: unless-stopped
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11436
     ports:
-      - "11436:11436"
+      - "11436:11434"
     volumes:
       - ollama_data:/root/.ollama
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:11436/api/tags || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -33,7 +31,7 @@ services:
       - ./storage:/app/storage
       - ./data:/app/data
     environment:
-      - OLLAMA_HOST=http://ollama:11436
+      - OLLAMA_HOST=http://ollama:11434
       - OLLAMA_MODEL=llama3.2
       - DB_PATH=/app/storage/stories.db
       - STORIES_DIR=/app/storage/stories
