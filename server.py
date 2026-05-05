@@ -176,6 +176,29 @@ def create_app(config: dict, db: Database) -> Flask:
         threading.Thread(target=run_process, daemon=True).start()
         return jsonify({"message": "Processing started"})
 
+    def run_generate(code, words):
+        nonlocal job_state
+        job_state["status"] = "running"
+        job_state["message"] = f"Generating video for {code}..."
+        try:
+            from main import cmd_generate
+            from argparse import Namespace
+            args = Namespace(config="config.json", code=code, words=words)
+            cmd_generate(args)
+            job_state["message"] = f"Video generation for {code} finished."
+        except Exception as e:
+            job_state["message"] = f"Error generating video: {str(e)}"
+        finally:
+            job_state["status"] = "idle"
+
+    @app.route("/api/trigger/generate/<code>", methods=["POST"])
+    def trigger_generate(code):
+        if job_state["status"] != "idle":
+            return jsonify({"error": "A job is already running", "state": job_state}), 400
+        words = request.json.get("words", 250) if request.is_json else 250
+        threading.Thread(target=run_generate, args=(code, words), daemon=True).start()
+        return jsonify({"message": f"Video generation for {code} started"})
+
     @app.route("/api/job/status")
     def job_status():
         return jsonify(job_state)

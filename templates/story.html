@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}{{ story.title }} — Reddit Stories{% endblock %}
 
 {% block breadcrumb %}
@@ -126,7 +126,9 @@
         <span class="material-symbols-rounded empty-state__icon">videocam_off</span>
         <p class="empty-state__text">Noch kein Video generiert.</p>
         <p class="empty-state__hint">
-          Führe <code>python main.py generate --code {{ story.story_code }}</code> aus.
+          <button class="btn btn--primary" onclick="triggerJob('/api/trigger/generate/{{ story.story_code }}')" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:none;border-radius:16px;background:var(--primary);color:var(--on-primary);cursor:pointer;font-family:inherit;font-weight:500;">
+            <span class="material-symbols-rounded" style="font-size:18px;">movie</span> Video Generieren
+          </button>
         </p>
       </div>
       {% endif %}
